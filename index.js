@@ -3,10 +3,10 @@ const storage = require('@google-cloud/storage');
 const fsp     = require('fs-promise');
 const {exec}  = require('mz/child_process');
 
-function fetchCurrentVersion(ui, gcs, bucketName, fileName) {
-  ui.writeLine(`fetching current app version from ${bucketName}/${fileName}`);
+function fetchCurrentVersion(ui, configFile) {
+  ui.writeLine(`fetching current app version from ${configFile.bucket.name}/${configFile.name}`);
 
-  return gcs.bucket(bucketName).file(fileName).download().then(([buffer]) => {
+  return configFile.download().then(([buffer]) => {
     const config = JSON.parse(buffer.toString());
 
     ui.writeLine('got config', config);
@@ -21,10 +21,10 @@ function removeOldApp(ui, outputPath) {
   return fsp.remove(outputPath);
 }
 
-function downloadAppZip(ui, gcs, bucketName, fileName, zipPath) {
-  ui.writeLine(`saving Cloud Storage object ${bucketName}/${fileName} to ${zipPath}`);
+function downloadAppZip(ui, zipFile, zipPath) {
+  ui.writeLine(`saving Cloud Storage object ${zipFile.bucket.name}/${zipFile.name} to ${zipPath}`);
 
-  return gcs.bucket(bucketName).file(fileName).download({destination: zipPath});
+  return zipFile.download({destination: zipPath});
 }
 
 function unzipApp(ui, zipPath) {
@@ -69,24 +69,22 @@ class AppNotFoundError extends Error {
 
 class GCSDownloader {
   constructor({bucket, key, authentication} = {}) {
-    this.configBucket = bucket;
-    this.configKey    = key;
-    this.gcs          = storage(authentication);
+    this.configBucket   = bucket;
+    this.configKey      = key;
+    this.authentication = authentication;
   }
 
   download() {
-    if (!this.configBucket || !this.configKey) {
-      this.ui.writeError('no Cloud Storage bucket or key provided; not downloading app');
+    const gcs        = storage(this.authentication);
+    const configFile = gcs.bucket(this.configBucket).file(this.configKey);
 
-      return Promise.reject(new AppNotFoundError());
-    }
-
-    return fetchCurrentVersion(this.ui, this.gcs, this.configBucket, this.configKey).then(({bucket: appBucket, key: appKey}) => {
-      const zipPath    = path.basename(appKey);
+    return fetchCurrentVersion(this.ui, configFile).then(({bucket: appBucket, key: appKey}) => {
+      const zipFile    = gcs.bucket(appBucket).file(appKey);
+      const zipPath    = path.basename(zipFile.name);
       const outputPath = outputPathFor(zipPath);
 
       return removeOldApp(this.ui, outputPath).then(() => {
-        return downloadAppZip(this.ui, this.gcs, appBucket, appKey, zipPath);
+        return downloadAppZip(this.ui, zipFile, zipPath);
       }).then(() => {
         return unzipApp(this.ui, zipPath);
       }).then(() => {
