@@ -1,7 +1,7 @@
 const path    = require('path');
-const {exec}  = require('child_process');
 const storage = require('@google-cloud/storage');
 const fsp     = require('fs-promise');
+const {exec}  = require('mz/child_process');
 
 function AppNotFoundError() {
   const error = new Error(...arguments);
@@ -54,17 +54,9 @@ function installDependencies(ui, outputPath) {
 }
 
 function execute(ui, command) {
-  return new Promise((resolve, reject) => {
-    exec(command, (err, stdout, stderr) => {
-      if (err) {
-        ui.writeError(`error running command ${command}`);
-        ui.writeError(stderr);
-
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
+  return exec(command).catch((stdout, stderr) => {
+    ui.writeError(`error running command ${command}`);
+    ui.writeError(stderr);
   });
 }
 
