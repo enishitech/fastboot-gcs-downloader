@@ -3,14 +3,6 @@ const storage = require('@google-cloud/storage');
 const fsp     = require('fs-promise');
 const {exec}  = require('mz/child_process');
 
-function AppNotFoundError() {
-  const error = new Error(...arguments);
-
-  error.name = 'AppNotFoundError';
-
-  return error;
-}
-
 function fetchCurrentVersion(ui, gcs, bucketName, fileName) {
   ui.writeLine(`fetching current app version from ${bucketName}/${fileName}`);
 
@@ -67,6 +59,14 @@ function outputPathFor(zipPath) {
   return name.split('-').slice(0, -1).join('-');
 }
 
+class AppNotFoundError extends Error {
+  constructor() {
+    super(...arguments);
+
+    this.name = 'AppNotFoundError';
+  }
+}
+
 class GCSDownloader {
   constructor({bucket, key, authentication} = {}) {
     this.configBucket = bucket;
@@ -78,7 +78,7 @@ class GCSDownloader {
     if (!this.configBucket || !this.configKey) {
       this.ui.writeError('no Cloud Storage bucket or key provided; not downloading app');
 
-      return Promise.reject(AppNotFoundError());
+      return Promise.reject(new AppNotFoundError());
     }
 
     return fetchCurrentVersion(this.ui, this.gcs, this.configBucket, this.configKey).then(({bucket: appBucket, key: appKey}) => {
