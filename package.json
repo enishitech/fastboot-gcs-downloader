@@ -1,0 +1,26 @@
+{
+  "name": "fastboot-gcs-downloader",
+  "version": "0.0.0",
+  "description": "A FastBoot App Server downloader for Google Cloud Storage",
+  "main": "index.js",
+  "engines": {
+    "node": ">= 6"
+  },
+  "scripts": {
+    "test": "eslint ."
+  },
+  "repository": {
+    "url": "https://github.com/ursm/fastboot-gcs-downloader.git",
+    "type": "git"
+  },
+  "author": "Keita Urashima <ursm@ursm.jp>",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/storage": "^0.4.0",
+    "fs-promise": "^1.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.9.1",
+    "eslint-plugin-node": "^3.0.3"
+  }
+}
