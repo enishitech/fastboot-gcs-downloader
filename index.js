@@ -75,6 +75,12 @@ class GCSDownloader {
   }
 
   download() {
+    if (!this.configBucket || !this.configKey) {
+      this.ui.writeError('no Cloud Storage bucket or key provided; not downloading app');
+
+      return Promise.reject(new AppNotFoundError());
+    }
+
     const gcs        = storage(this.authentication);
     const configFile = gcs.bucket(this.configBucket).file(this.configKey);
 
