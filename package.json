@@ -1,6 +1,6 @@
 {
   "name": "fastboot-gcs-downloader",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A FastBoot App Server downloader for Google Cloud Storage",
   "main": "index.js",
   "engines": {
