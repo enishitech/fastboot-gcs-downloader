@@ -70,7 +70,7 @@ class AppNotFoundError extends Error {
 class GCSDownloader {
   constructor({bucket, key, authentication} = {}) {
     this.configBucket   = bucket;
-    this.configKey      = key;
+    this.configKey      = key || 'fastboot-deploy-info.json';
     this.authentication = authentication;
   }
 
